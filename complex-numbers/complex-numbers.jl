@@ -17,22 +17,26 @@ promote_rule(::Type{ComplexNumber{T}}, ::Type{ComplexNumber{S}}) where
 promote_rule(::Type{ComplexNumber{T}}, ::Type{S}) where 
     {T<:Real, S<:Real} = ComplexNumber{promote_type(T, S)}
 
+    #=
+Now that we have implemented real and imag lets make sure that
+the following are type safe
+=#
 *(a::ComplexNumber, b::ComplexNumber) = 
-    ComplexNumber(a.re * b.re - a.im * b.im, a.im * b.re + b.im * a.re)
+    ComplexNumber(real(a) * real(b) - imag(a) * imag(b), imag(a) * real(b) + imag(b) * real(a))
 +(a::ComplexNumber, b::ComplexNumber) = 
-    ComplexNumber(a.re + b.re, a.im + b.im)
+    ComplexNumber(real(a) + real(b), imag(a) + imag(b))
 -(a::ComplexNumber, b::ComplexNumber) = 
-    ComplexNumber(a.re - b.re, a.im - b.im)
+    ComplexNumber(real(a) - real(b), imag(a) - imag(b))
 /(a::ComplexNumber, b::ComplexNumber) =  
-    ComplexNumber((a.re * b.re + a.im * b.im)/(b.re^2 + b.im^2),
-                  (a.im * b.re - a.re * b.im)/(b.re^2 + b.im^2))
-
-abs(z::ComplexNumber) = hypot(z.re, z.im)
-conj(z::ComplexNumber) = ComplexNumber(z.re, -z.im)
+    ComplexNumber((real(a) * real(b) + imag(a) * imag(b))/(real(b)^2 + imag(b)^2),
+                  (imag(a) * real(b) - real(a) * imag(b))/(real(b)^2 + imag(b)^2))
 
 real(z::ComplexNumber) = z.re
 imag(z::ComplexNumber) = z.im
 
-exp(z::ComplexNumber) = ComplexNumber(exp(z.re) * cos(z.im), exp(z.re) * sin(z.im))
+exp(z::ComplexNumber) = ComplexNumber(exp(real(z)) * cos(imag(z)), exp(real(z)) * sin(imag(z)))
+
+abs(z::ComplexNumber) = hypot(real(z), imag(z))
+conj(z::ComplexNumber) = ComplexNumber(real(z), -imag(z))
 
 const jm = ComplexNumber(0, 1)
