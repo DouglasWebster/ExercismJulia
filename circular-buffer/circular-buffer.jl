@@ -1,55 +1,72 @@
-mutable struct CircularBuffer{T}  <: AbstractArray{T, 1}
-    buffer::Array{T}
-    capacity::Int
-    head::Int
-    tail::Int
-    count::Int
+"""
+    CircularBuffer{T}(n::Int)
+
+The circular buffer implements a buffer of fixed capacity (n) where the newest
+item is pushed at the back and items are removed oldest first.  It is in effect a 
+First In First Out (FIFO) queue.
+
+Allocate a buffer of undetermined elements of type `T` with a maximum capacity of `n`.
+
+"""
+mutable struct CircularBuffer{T}  <: AbstractVector{T}
+    buffer::Vector{T}
+    capacity::Int   # The size of the buffer
+    tail::Int       # The oldest elemetn added
+    count::Int      # The current number of elements in the buffer
 
     function CircularBuffer{T}(capacity::Integer) where {T}
-        new(Vector{T}(undef, capacity), capacity, 0, 0, 0)
+        return new{T}(undef, capacity, 0, 0)
     end
 end
 
-function items(cb::CircularBuffer) 
-    buffer::Array{Type(cb.buffer{Type})}
-    x = cb.tail
-    for i in 1:cb.countcount
-        pushfirst!(buffer, cb.buffer[x])
-        x -= 1
-        x== 0 && (x = cb.count)
-    end
-    return buffer
-end
 
 
+# function items(cb::CircularBuffer) 
+#     buffer::Array{Type(cb.buffer{Type})}
+#     x = cb.tail
+#     for i in 1:cb.countcount
+#         pushfirst!(buffer, cb.buffer[x])
+#         x -= 1
+#         x== 0 && (x = cb.count)
+#     end
+#     return buffer
+# end
+
+"""
+    push!(cb::CircularBuffer, item; overwrite=false)
+
+Add an element to the back of the queue.
+
+overwrite determines the action on attempting to add an element to a full queue
+- overwrite == false:   Raise an BoundsError exception.
+- overwrite == true:    overwrite the element at the front of the queue.
+"""
 function Base.push!(cb::CircularBuffer, item; overwrite::Bool=false)
     cb.count == cb.capacity && !overwrite && throw(BoundsError(cb, cb.capacity +1))
+    
+    # converted_data = convert(T, item)
+    
     if cb.count == cb.capacity
-        cb.head = cb.tail-1
-        cb.tail = (cb.tail += 1) % cb.capacity
-        cb.count -= 1
+        cb.tail = (cb.tail == cb.capacity ? 1 : cb.tail + 1)
+    else
+        cb.tail += 1
     end
-    cb.buffer[cb.head+1] = item
-    cb.head = (cb.head += 1) % cb.capacity
-    cb.count += 1
-    cb.count == 1 && (cb.tail = cb.head)
+    cb.buffer[cb.tail] = converted_data
     return cb
 end
 
 
 function Base.popfirst!(cb::CircularBuffer)
     cb.count == 0 && throw(BoundsError(cb, 0))
-    item = cb.buffer[cb.tail+1]
-    cb.tail = (cb.tail += 1) % cb.capacity
+    n = cb.tail
+    cb.tail = (cb.tail + 1 > cb.capacity ? 1 : cb.tail +1)
     cb.count -= 1
-    cb.count == 0 && empty!(cb)
-    return item 
+    
+    return cb.buffer[n] 
 end
 
 
 function Base.empty!(cb::CircularBuffer)
-    cb.head = 0
-    cb.tail = 0
     cb.count =0
     return cb
 end
