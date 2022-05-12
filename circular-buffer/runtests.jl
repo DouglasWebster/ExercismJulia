@@ -138,7 +138,7 @@ end
 end
 
 # Uncomment the following line to enable bonus tests.
-# enable_bonus_tests = true
+enable_bonus_tests = true
 
 if @isdefined(enable_bonus_tests) && enable_bonus_tests
     println("\nBonus tests enabled.\n")
