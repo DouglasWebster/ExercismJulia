@@ -1,3 +1,1 @@
-function add_gigasecond(date::DateTime)
-
-end
+add_gigasecond(date::DateTime) = Dates.Second( 10^9) + date
