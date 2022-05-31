@@ -1,10 +1,12 @@
+include("permutations.jl")
+
 function solve(problem)
-    problem = replace(problem, " " => "")
+    problem = replace(problem, " " => "") 
     letters = Dict{Char, Vector}()
     lhs = split(split(problem, "==")[1], "+")
     rhs = split(problem, "==")[2]
-    length(rhs) == 1 && return nothing
-    length(lhs) == 1 && lhs[1] ≠ rhs && return nothing
+    (length(rhs) == 1 || length(lhs) == 1) && return nothing # indeterminate answer!
+
 
     # set up the possible values for each letter in the summands
     for summand ∈ lhs
@@ -53,25 +55,31 @@ function solve(problem)
     
     # now comes the brute force attack!
     
-    # find the letter with the shortest length of digits
-    digit_count = 11
-    letter = ' '
-    for (k, v) in letters
-        if length(v) < digit_count
-            digit_count = length(v)
-            letter = k
+    # set up the combination of digits
+    test_letters = unique([c for c ∈ problem if isletter(c)])
+    combos = permutations(0:9, length(test_letters))
+    
+    test_dict = Dict{Char, Int}()
+    for combo in combos
+        valid = true
+        for (i, num) ∈ enumerate(combo)
+            if num in letters[test_letters[i]] # test if it is a valid digit for the letter
+                test_dict[test_letters[i]] = num
+            else
+                valid = false
+                break
+            end
         end
+        valid && do_sum(test_dict, lhs, rhs) && (return test_dict)
+    
     end
-    
-    
 
-
-    
-    return(letters, max_sum, digit_count, letter)
-
+    return nothing
 end
 
-function do_sum(test_digits::Dict, lhs::Array, rhs:: String)
+
+
+function do_sum(test_digits::Dict, lhs::Array, rhs)
     total = 0
     for summand ∈ lhs
         indices = length(summand) -1
@@ -88,8 +96,6 @@ function do_sum(test_digits::Dict, lhs::Array, rhs:: String)
         indices -= 1
     end
 
-    return(total, ans)
+    total == ans
 end
 
-# do_sum(Dict('I' => 1, 'B' => 9, 'L' => 0), ["I", "BB"], "ILL")
-solve("SEND + MORE == MONEY")
