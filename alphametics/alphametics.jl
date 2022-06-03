@@ -7,33 +7,26 @@ function solve(problem)
     rhs = split(problem, "==")[2]
     (length(rhs) == 1 || length(lhs) == 1) && return nothing # indeterminate answer!
 
-
-    # set up the possible values for each letter in the summands
+    # set the possible values for each letter in the summands as 0 - 9
     for summand ∈ lhs
         l = length(summand)
-        l > length(rhs) && return nothing # test for leading zero
-        first_letter = summand[1]               # it is the first letter so cannot be zero
-        if haskey(letters, first_letter)        # encountered before
-            letters[first_letter][1] == 0 &&    # but not as first letter so
-            popfirst!(letters[first_letter])    # get rid of the zero if it exists
-        else
-            letters[first_letter] = [1:9...] 
-        end
-
-        for l ∈ summand[2:end]
+        l > length(rhs) && return nothing       # test for leading zero
+        for l ∈ summand    
             haskey(letters, l) && continue
             letters[l] = [0:9...]
         end
     end
-
-    # set up the possible values for each letter in the total
-    for (x, l)  in enumerate(rhs)
-        if haskey(letters, l)
-            x == 1 && letters[l][1] == 0 && 
-            popfirst!(letters[l])  # get rid of the zero if it exists
-        else
-            x == 1 ? letters[l] = [1:9...] : letters[l] = [0:9...] 
-        end 
+    
+    # set up the possible values for each letter in the total as 0 - 9
+    for l ∈ rhs
+        letters[l] = [0:9...]
+    end
+    
+    # get rid of 0 as a possible digit for all initial letters
+    initials = Set(summand[begin] for summand in lhs)
+    push!(initials, rhs[begin])
+    for i ∈ initials
+        popfirst!(letters[i])
     end
     
     # if possible get rid of the impossible digits for the first letter of the total 
@@ -70,6 +63,7 @@ function solve(problem)
                 break
             end
         end
+
         valid && do_sum(test_dict, lhs, rhs) && (return test_dict)
     
     end
@@ -98,4 +92,3 @@ function do_sum(test_digits::Dict, lhs::Array, rhs)
 
     total == ans
 end
-
